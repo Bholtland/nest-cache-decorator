@@ -15,11 +15,8 @@ export class CacheService {
         protected config: CacheDecoratorModuleConfig
     ) {}
 
-    public async deleteByAction(action?: string) {
-        this.config;
-        const key = action
-            ? `${this.config.application.name}-${this.config.application.version}|${action}:*`
-            : `${this.config.application.name}-${this.config.application.version}|*`;
+    public async deleteByAction(origin: string, action: string) {
+        const key = this.makeRedisKey(origin, action);
 
         const keys = await this.cache.keys(key);
         if (keys.length > 0) {
@@ -31,21 +28,28 @@ export class CacheService {
     public async delete(origin: string, action: string, identifier: string) {
         const hash = this.makeRedisKey(origin, action, identifier);
         await this.cache.del(hash);
-        // tslint:disable-next-line:strict-type-predicates
         return true;
     }
 
-    protected makeHashFromRequestData(identifier: string) {
+    protected hashIdentifier(identifier: string) {
         return this.crypto
             .createHash("sha1")
             .update(identifier)
             .digest("base64");
     }
 
-    protected makeRedisKey(origin: string, action: string, identifier: string) {
+    protected makeRedisKey(
+        origin: string,
+        action: string,
+        identifier?: string
+    ) {
         return `${this.config.application.name}-${
             this.config.application.version
-        }|${origin}|${action}:${this.makeHashFromRequestData(identifier)}`;
+        }|${origin}|${action}:${
+            identifier
+                ? this.hashIdentifier(identifier)
+                : this.hashIdentifier("*")
+        }`;
     }
 
     public async get(origin: string, action: string, identifier: string) {
