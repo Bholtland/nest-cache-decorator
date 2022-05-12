@@ -1,16 +1,10 @@
 import { Inject } from "@nestjs/common";
+import { toKebabCase } from "../helpers/to-kebab-case.helper";
 import { CacheService } from "./cache.service";
 /**
  * Usage:
  * Simply add the "@Cache" decorator above the method of your choice and if the response of the method is an object/array, it will be cached for future use.
  */
-
-function toKebabCase(input: string) {
-    return input
-        .match(/([A-Z0-9]+[a-z]*)/g)
-        .join("-")
-        .toLowerCase();
-}
 
 export function Cache(options?: { ttl?: number }) {
     const redisInjection = Inject(CacheService);
